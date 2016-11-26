@@ -85,21 +85,21 @@
 
 
 <meta name="description" content="一直以为Java存在垃圾回收机制，可以在我们用完对象后自动回收过期的对象引用。直至今天我阅读了effective Java的一个小节之后，才认识到了这个问题。
-内存泄漏会导致什么随着垃圾回收器活动的增加，或者由于内存占用的不断增加，程序性能的降低会逐渐表现出来。在极端情况下这种内存泄漏会导致磁盘交换，甚至导致程序失败（OouOfMemoryErrorc错误），但是这种情况相对比较少见。
-内存泄漏的">
+内存泄漏会导致什么随着垃圾回收器活动的增加，或者由于内存占用的不断增加，程序性能的降低会逐渐表现出来。在极端情况下这种内存泄漏会导致磁盘交换，甚至导致程序失败（OouOfMemoryErrorc错误），但是这种情况相对比较少见。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="过期对象的内存泄漏">
 <meta property="og:url" content="http://yoursite.com/2016/11/25/second/index.html">
 <meta property="og:site_name" content="小神枪的博客">
 <meta property="og:description" content="一直以为Java存在垃圾回收机制，可以在我们用完对象后自动回收过期的对象引用。直至今天我阅读了effective Java的一个小节之后，才认识到了这个问题。
-内存泄漏会导致什么随着垃圾回收器活动的增加，或者由于内存占用的不断增加，程序性能的降低会逐渐表现出来。在极端情况下这种内存泄漏会导致磁盘交换，甚至导致程序失败（OouOfMemoryErrorc错误），但是这种情况相对比较少见。
-内存泄漏的">
-<meta property="og:updated_time" content="2016-11-26T07:46:59.147Z">
+内存泄漏会导致什么随着垃圾回收器活动的增加，或者由于内存占用的不断增加，程序性能的降低会逐渐表现出来。在极端情况下这种内存泄漏会导致磁盘交换，甚至导致程序失败（OouOfMemoryErrorc错误），但是这种情况相对比较少见。">
+<meta property="og:image" content="http://oh7by39al.bkt.clouddn.com/QQ%E6%88%AA%E5%9B%BE20161126151903.png">
+<meta property="og:image" content="http://oh7by39al.bkt.clouddn.com/QQ%E6%88%AA%E5%9B%BE20161126152443.png">
+<meta property="og:updated_time" content="2016-11-26T07:54:35.169Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="过期对象的内存泄漏">
 <meta name="twitter:description" content="一直以为Java存在垃圾回收机制，可以在我们用完对象后自动回收过期的对象引用。直至今天我阅读了effective Java的一个小节之后，才认识到了这个问题。
-内存泄漏会导致什么随着垃圾回收器活动的增加，或者由于内存占用的不断增加，程序性能的降低会逐渐表现出来。在极端情况下这种内存泄漏会导致磁盘交换，甚至导致程序失败（OouOfMemoryErrorc错误），但是这种情况相对比较少见。
-内存泄漏的">
+内存泄漏会导致什么随着垃圾回收器活动的增加，或者由于内存占用的不断增加，程序性能的降低会逐渐表现出来。在极端情况下这种内存泄漏会导致磁盘交换，甚至导致程序失败（OouOfMemoryErrorc错误），但是这种情况相对比较少见。">
+<meta name="twitter:image" content="http://oh7by39al.bkt.clouddn.com/QQ%E6%88%AA%E5%9B%BE20161126151903.png">
 
 
 
@@ -354,8 +354,8 @@
 
       
         <p>一直以为Java存在垃圾回收机制，可以在我们用完对象后自动回收过期的对象引用。直至今天我阅读了effective Java的一个小节之后，才认识到了这个问题。</p>
-<h1 id="内存泄漏会导致什么"><a href="#内存泄漏会导致什么" class="headerlink" title="内存泄漏会导致什么"></a>内存泄漏会导致什么</h1><p>随着垃圾回收器活动的增加，或者由于内存占用的不断增加，程序性能的降低会逐渐表现出来。在极端情况下这种内存泄漏会导致磁盘交换，甚至导致程序失败（OouOfMemoryErrorc错误），但是这种情况相对比较少见。</p>
-<h1 id="内存泄漏的列子"><a href="#内存泄漏的列子" class="headerlink" title="内存泄漏的列子"></a>内存泄漏的列子</h1><p>直接用原文的例子了，如下图：<br>！<a href="http://oh7by39al.bkt.clouddn.com/QQ%E6%88%AA%E5%9B%BE20161126151903.png" target="_blank" rel="external">图1</a><br>这是一段经过测试没有问题的代码，而是他确实可能引起“内存泄漏”。大家看pop()中弹出栈中的一个元素只是让栈指针-1。确实栈中元素已经弹出并且栈指针已重新定位到下一个元素。但是，被弹出的元素依然存在于elements数组中，它依然被elements数组所引用，GC是无法回收被引用着的对象的。<br>也就是说栈内部维护着对这些对象的<strong>过期引用</strong>（obsolete reference）。所谓的 过期引用，是指永远也不会再被解除的引用。在本例中，凡是在elements数值的“活动部分(active portion)”之外的任何引用都是过期的。活动部分是指elements中下标小于size的那些元素。<br>修复的方法也很简单，我们只需要清空这些过期引用就可以了，把这些被排除在垃圾回收机制之外的对象清空：<br>！<a href="http://oh7by39al.bkt.clouddn.com/QQ%E6%88%AA%E5%9B%BE20161126152443.png" target="_blank" rel="external">图2 </a></p>
+<h1 id="内存泄漏会导致什么"><a href="#内存泄漏会导致什么" class="headerlink" title="内存泄漏会导致什么"></a>内存泄漏会导致什么</h1><p>随着垃圾回收器活动的增加，或者由于内存占用的不断增加，程序性能的降低会逐渐表现出来。在极端情况下这种内存泄漏会导致磁盘交换，甚至导致程序失败（OouOfMemoryErrorc错误），但是这种情况相对比较少见。<a id="more"></a></p>
+<h1 id="内存泄漏的列子"><a href="#内存泄漏的列子" class="headerlink" title="内存泄漏的列子"></a>内存泄漏的列子</h1><p>直接用原文的例子了，如下图：<br><img src="http://oh7by39al.bkt.clouddn.com/QQ%E6%88%AA%E5%9B%BE20161126151903.png" alt="图1"><br>这是一段经过测试没有问题的代码，而是他确实可能引起“内存泄漏”。大家看pop()中弹出栈中的一个元素只是让栈指针-1。确实栈中元素已经弹出并且栈指针已重新定位到下一个元素。但是，被弹出的元素依然存在于elements数组中，它依然被elements数组所引用，GC是无法回收被引用着的对象的。<br>也就是说栈内部维护着对这些对象的<strong>过期引用</strong>（obsolete reference）。所谓的 过期引用，是指永远也不会再被解除的引用。在本例中，凡是在elements数值的“活动部分(active portion)”之外的任何引用都是过期的。活动部分是指elements中下标小于size的那些元素。<br>修复的方法也很简单，我们只需要清空这些过期引用就可以了，把这些被排除在垃圾回收机制之外的对象清空：<br><img src="http://oh7by39al.bkt.clouddn.com/QQ%E6%88%AA%E5%9B%BE20161126152443.png" alt="图2"></p>
 <h1 id="内存泄露来源及解决"><a href="#内存泄露来源及解决" class="headerlink" title="内存泄露来源及解决"></a>内存泄露来源及解决</h1><p>  <strong>内存泄露可能来源于缓存</strong>。我们为了让下次的程序的处理速度更快，常常需要将一些信息缓存在内存中，但是这些过期的缓存又很容易被遗忘，从而使得它不再有用之后很长一段时间内仍然留在缓存中。例如像一个要显示图片墙的程序，我们需要缓存图片和相关的信息，为了方便GC回收过期的缓存，我们可以使用WeakHashMap来实现缓存，当界面显示图片的时候，界面持有相关图片的引用，这些引用同时也存在于WeakHashMap中。而其他不被界面持有的过期缓存，则WeakHashMap会自动将这些剔除.<br> 总的说来，只要在缓存之外存在对某个项的键的引用，该项就有意义，那么就可以用WeakHashMap代表缓存；当缓存中的项过期之后，它们就自动被删除。记住只有当所有的缓存项的生命周期是由该键的外部引用而不是由值决定时，WeakHashMap才有用处。<br>  <strong>更为常见的情景则是</strong>,”缓存项的生命周期是否有意义”并不是非常容易确定，随着时间推移，其中的项会变得越来越没有价值。在这种情况下，缓存应该是不是地清除掉没有的项。这项清除工作可以由一个后台线程（可能是Timer或者ScheduledThreadPoolExecutor）来完成，或者也可以在给缓存添加新条目的时候顺便进行清理。LinkedHashMap类利用它的removeEldestEntry方法可以很容易地实现后一种方案。对于更加复杂的缓存，必须直接使用java.lang.ref.<br>   <strong>内存泄露的第三个常见来源是监听器和其他回调</strong>。如果你实现了一个API，客户端在这个API中注册回调，却没有显式地取消注册，那么除非你采取某些动作，否则他们就会积聚。确保回调立即被当成垃圾回收的最佳方法是只保存它们的弱引用（weak reference），例如，只将它们保存成WeakHashMap中的键。</p>
 <p>   本文部分参考《effective Java》</p>
 
